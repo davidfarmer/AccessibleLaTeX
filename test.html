@@ -1,0 +1,36 @@
+
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <title>Accessible LaTeX test interface</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            vertical-align: top
+        }
+    </style>
+<link href="test.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Accessible LaTeX</h1>
+
+
+    <textarea rows="8" cols="60" id=sourceTextArea placeholder="Type in this box."></textarea>
+
+    <h2>These errors may cause issues when converting your LaTeX</h2>
+    <div id=errorsDisplayArea disabled=true role="region" aria-label="list of errors"></div>
+
+    <h2>Those errors in context</h2>
+    <div id=scannedTextArea disabled=true></div>
+
+    <textarea rows="8" cols="60" id=mathmlTextArea disabled=true placeholder="MathML version"></textarea>
+
+    <textarea rows="8" cols="60" id=echosourceTextArea disabled=true placeholder="What you typed, in LaTeX"></textarea>
+<p id="MathJaxArea"></p>
+
+<script type="module" src="src/test.js"></script>
+
+</body>
+</html>
+
