@@ -41,15 +41,15 @@ Set op the outline of your document using `\chapter`,
 
 ### Environments (is that the right term?)
 
-Definitions, examples, lemmas, etx are marked with
+Definitions, examples, lemmas, etc are marked with
 ```
 \begin{X}[Optional title]
  ...
 \end{X}
 ```
 where `X` is anything from the long list provided by the
-`amsart` class: theorem, prposition, lemma, definition,
-remark, and many more (including common appreviaiotns,
+`amsart` class: theorem, proposition, lemma, definition,
+remark, and many more (including common abbreviations,
 such as thm, def, and rem).
 
 ### Lists
@@ -63,7 +63,7 @@ the list markers, such as
 ```
 Those items will be labeled A), B), C), etc.
 Do not assume that you will get the markers you asked for
-however.  And that is okay:  you shoudl use `\label{...}`
+however.  And that is okay:  you should use `\label{...}`
 and `\ref{...}` if you need to refer to a list item.
 
 Do not use the `\item[...]` option to change the marker
@@ -75,9 +75,10 @@ make a description list:
 \item[avocado]  The fruit used to make guacamole.
 \item[banana] A fruit that has to be picked before it is ripe
 so that seeds don't form.
-\item[tomato] Yes, that is also a fruit, and some peo;le put it
+\item[tomato] Yes, that is also a fruit, and some people put it
  in guacamole.
 \end{description}
+```
 
 ### Tables
 
@@ -87,7 +88,7 @@ the items in each column have something in common, and all
 (or almost all) cells have content.  In particular, the table is
 not being used for the visual arrangement of non-tabular data.
 
-[[put description of bable markup here]]
+[[put description of table markup here]]
 
 ### Figures
 
@@ -95,7 +96,7 @@ not being used for the visual arrangement of non-tabular data.
 
 ## Paragraph content
 
-Most of the textual content is within a paragrpah,
+Most of the textual content is within a paragraph,
 or in a list item or caption.
 
 [[ emphasis, alert, terminology, inline math,
@@ -104,7 +105,7 @@ display math
 ## Labels and references
 
 Put at most one label in each numbered environment,
-prefereably at the start.  Use a meamingful readable label,
+preferably at the start.  Use a meaningful readable label,
 because in some output formats it may be visible to the reader.
 
 Use `\eqref{...}` to refer to an equation and `\ref{...}` to
@@ -128,7 +129,7 @@ good macros, because you don;t have to guess what the markup means.
 
 You may be in the habit of using "shortcut" or "bad" macros so that
 you type a cryptic short string instead of a meaningful longer
-srting.  It would be better to learn to use a modern editing program
+string.  It would be better to learn to use a modern editing program
 that can manage shortcuts for you.  But whatever macros you use,
 define them with the `\newcommand`, as shown above.
 
@@ -139,11 +140,11 @@ Do not use TeX-style `\def` or `\let`, nor use `\renewcommand`.
 
 ### Conditionals: `\if`.
 
-If you keep miltiple versions in the same source file,
+If you keep multiple versions in the same source file,
 using `\if...\then...\else...`, assume that *all of every version
 will appear in the output*.  You cannot assume that other ways of
 processing your content have the sophistication of TeX,
-so (usually) the safe choice is made: include everyhitng.
+so (usually) the safe choice is made: include everything.
 
 
 ## Avoid TeX primitives
