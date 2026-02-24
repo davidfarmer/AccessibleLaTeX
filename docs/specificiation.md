@@ -30,9 +30,11 @@ come to expect from LaTeX.
 
 ## Overall structure
 
-front matter, begin document, etc
+three parts:
 
-## Content structure
+front matter, body, bibliography
+
+## Structure of the document body
 
 ### Divisions
 
