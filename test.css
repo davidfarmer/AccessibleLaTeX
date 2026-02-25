@@ -24,6 +24,12 @@ h1 {
 .error {
     background: #fdd;
 }
+.error.low {
+    background: #dad;
+}
+.error.accessible {
+    background: #daa;
+}
 #mathmlTextArea {
     background: #eef;
     color: black;

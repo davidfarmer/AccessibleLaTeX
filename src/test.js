@@ -12,3 +12,4 @@ if (sourceTextArea.addEventListener) {
       errorsDisplayArea.innerHTML = showErrors(allErrors);
   });
 }
+

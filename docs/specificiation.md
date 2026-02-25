@@ -30,18 +30,21 @@ come to expect from LaTeX.
 
 ## Overall structure
 
-three parts:
+A LaTeX document has two parts: the _preamble_ (everything
+before the `\begin{document}`), and the remainder,
+which we will call the _body_.
 
-front matter, body, bibliography
+If your document has a bibliography, it is helpful to think
+of it as a 3rh part.
 
 ## Structure of the document body
 
 ### Divisions
 
 Set op the outline of your document using `\chapter`,
-`\section`, and `subsection`.
+`\section`, and `subsection`. Use `\subsubsection` if necessary.
 
-### Environments (is that the right term?)
+### Environments
 
 Definitions, examples, lemmas, etc are marked with
 ```

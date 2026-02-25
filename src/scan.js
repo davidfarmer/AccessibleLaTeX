@@ -8,7 +8,7 @@ Output: list of warnings, errors, and fatalErrors
 */
 
 import {deleteComments} from './utils.js'
-import {plainTeX} from './data.js'
+import {badPlainTeX, badEverywhereMacros, badBodyEnvironments} from './data.js'
 
 export function scanForAnomalies(str) {
 
@@ -16,66 +16,90 @@ export function scanForAnomalies(str) {
 
    str = str.replace(/\\end{document}.*/s, "");  // do after deleting comments
 
-   let preambleAndBody = separatePreamble(str);
+   let preambleBodyBiblio = separatePieces(str);
 
-   let preamble = preambleAndBody[0];
-   let maintext = preambleAndBody[1];
+   let preamble = preambleBodyBiblio[0];
+   let maintext = preambleBodyBiblio[1];
+   let bibliography = preambleBodyBiblio[2];
 
    maintext = noBodyMacros(maintext);
 
-   preamble = noLaTeXdef(preamble);
-   maintext = noLaTeXdef(maintext);
-
-   maintext = noIfThenElse(maintext);
-
-   for(const lookfor of plainTeX) {
+   for(const lookfor of badEverywhereMacros) {
+console.log(lookfor);
+      preamble = noPlainTeX(preamble, lookfor);
       maintext = noPlainTeX(maintext, lookfor)
+   }
+
+   for(const lookfor of badPlainTeX) {
+      maintext = noPlainTeX(maintext, lookfor)
+   }
+
+   for(const lookfor of badBodyEnvironments) {
+      maintext = noBadEnvironments(maintext, lookfor)
    }
 
    console.log("maintext",maintext);
 
-   return preamble + "\\begin{document}\n" + maintext
+   return preamble + "\\begin{document}\n" + maintext + "\\begin{thebobliography}\n" + bibliography
 
 }
 
-function separatePreamble(str) {
+function separatePieces(str) {
 
-  let twopieces = str.split("\\begin{document");
+   let twopieces = str.split("\\begin{document");
 
-  if(twopieces.length != 2) {
-     console.log("mising begin{document}")
-  }
+   if(twopieces.length != 2) {
+      console.log("mising begin{document}")
+   }
+   const thepreamble = twopieces[0];
+   let thebody = twopieces[1];
 
-  return twopieces
+   let thebiblio = "";
+
+   if(thebody.match(/begin{thebibliography}/)) {
+
+      const bodyandbiblio = thebody.split("\\begin{thebibliography}");
+      thebody = bodyandbiblio[0];
+      thebiblio = bodyandbiblio[1]
+   }
+
+   return [thepreamble,thebody,thebiblio]
 }
 
 function noBodyMacros(str) {  // assumes str is body, so should not have any macros
 
    if(str.match(/\\newcommand/)) { 
 
-       allErrors.push(["warning","macros in body"]);
+       allErrors.push(["warning","macros_in_body"]);
 
-       str = str.replace(/(\\newcommand.*)/g, '<span class="warning move">$1</span>');
+       str = str.replace(/(\\newcommand.*)/g, '<span class="warning macros_in_body">$1</span>');
    }
 
    return str
 }
 
-function noLaTeXdef(str) { 
+function noBadEnvironments(str, lookingFor) {
 
-   if(str.match(/(\\def\b|\\let\b)/)) {
+   const thesetagsName = lookingFor[0];
+   for(const lookfor of lookingFor[1]) {
 
-       allErrors.push(["error","LaTeX definition"]);
+      const re = new RegExp("(\\\\(begin|end){\\s*" + lookfor + "})", 'g');
 
-       str = str.replace(/((\\def\b|\\let\b).*)/g, '<span class="error delete">$1</span>');
+      if(str.match(re)) {
+
+          allErrors.push(["error", thesetagsName]);
+
+          str = str.replace(re, '<span class="error ' + thesetagsName + '">$1</span>');
+      }
    }
 
    return str
 }
+
 
 function noPlainTeX(str, lookingFor) {
 
-//   const thesetags = ["conditional", ["if","then","else"]];
+console.log(lookingFor);
    const thesetagsName = lookingFor[0];
    const thesetagsOr = lookingFor[1].join("|");
    console.log("checking ifthenelse");
@@ -93,34 +117,6 @@ function noPlainTeX(str, lookingFor) {
    return str
 }
 
-function noIfThenElse(str) { 
-
-return str
-
-const thesetags = ["conditional", ["if","then","else"]];
-const thesetagsName = thesetags[0];
-const thesetagsOr = thesetags[1].join("|");
-console.log("checking ifthenelse");
-
-//   const re = new RegExp(`(\\\\(${thesetagsOr})\\b)`, 'g');
-   const re = new RegExp("(\\\\(" + thesetagsOr + ")\\b)", 'g');
-console.log("with regex", re, " on", str);
-   if(str.match(re)) {
-
-       allErrors.push(["error","If Then Else"]);
-
-       str = str.replace(re, '<span class="error ' + thesetagsName + '">$1</span>');
-   }
-   const ree = new RegExp(/(\\if\b|\\then\b|\\else\b)/, 'g');
-   if(str.match(ree)) {
-       console.log("matched ree")
-   }
-
-   console.log(" match ree ", ree, "jjj", str.match(ree), "lll");
-
-   return str
-}
-
 
 export function showErrors(errs) {
 
@@ -128,7 +124,7 @@ export function showErrors(errs) {
 
    for (let err of errs){
 
-     let thiserr = '<div class="' + err[0] + '">' + err[1] + '</div>' + '\n';
+     let thiserr = '<span class="' + err[0] + ' root' +  err[1] + '">' + err[1] + '</span>' + ' <span onclick="scrollToClass(' + "'" + err[1] + "'" + ')">find</span>' +  '\n' + "<br/>";
 
      theseerrors += thiserr
 

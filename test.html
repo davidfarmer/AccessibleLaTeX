@@ -15,6 +15,21 @@
 <body>
 <h1>Accessible LaTeX</h1>
 
+<script type="module" src="src/test.js"></script>
+
+<script>
+function scrollToClass(className) {
+   const element = document.getElementsByClassName(className)[0];
+console.log("clicked!", document.getElementsByClassName(className));
+   if (element) {
+    // Scroll to the element
+      element.scrollIntoView({ behavior:"smooth" });
+      return true;
+   } else {
+      return false;
+}
+}
+</script>
 
     <textarea rows="8" cols="60" id=sourceTextArea placeholder="Type in this box."></textarea>
 
@@ -24,12 +39,12 @@
     <h2>Those errors in context</h2>
     <div id=scannedTextArea disabled=true></div>
 
+<!--
     <textarea rows="8" cols="60" id=mathmlTextArea disabled=true placeholder="MathML version"></textarea>
 
     <textarea rows="8" cols="60" id=echosourceTextArea disabled=true placeholder="What you typed, in LaTeX"></textarea>
 <p id="MathJaxArea"></p>
-
-<script type="module" src="src/test.js"></script>
+-->
 
 </body>
 </html>
