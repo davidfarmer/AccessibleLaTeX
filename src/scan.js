@@ -8,7 +8,7 @@ Output: list of warnings, errors, and fatalErrors
 */
 
 import {deleteComments} from './utils.js'
-import {badPlainTeX, badEverywhereMacros, badBodyEnvironments} from './data.js'
+import {badPlainTeX, badEverywhereMacros, badBodyEnvironments, alternatives} from './data.js'
 
 export function scanForAnomalies(str) {
 
@@ -184,14 +184,19 @@ function logKeyDown(e) {
 function addEditMenuTo(elem) {
    let theseclasses = elem.className;
    console.log("element has classes:", theseclasses);
+   let toreplace = elem.getAttribute("data-macro");
 
-   let options = ["textit", [["emph","emphasis"], ["term","terminology"]]];
-   let toreplace = options[0];
+   var options = [];
+   if(toreplace in alternatives) {
+      options = alternatives[toreplace];
+   }
+//   let options = ["textit", [["emph","emphasis"], ["term","terminology"]]];
+//   let toreplace = options[0];
 
    var innermenu = '<span class="option" tabindex="0" >Leave as-is (will be ignored later)</span>';
    innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + "'" + toreplace + "'" + ',0' + ',0)">Delete</span>';
    innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + "'" + toreplace + "'" + ',-1' + ',-1)">Delete everywhere</span>';
-  for(const optionpair of options[1]) {
+  for(const optionpair of options) {
       var thisoption = '<span onClick="replacetex(' + toreplace + "," + optionpair[0] + ',1)" tabindex="0"  class="option">';
       thisoption +=  optionpair[0]
       thisoption +=  '</span>\n';

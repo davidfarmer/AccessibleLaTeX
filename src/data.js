@@ -36,10 +36,15 @@ export let typeOfError = {
     "presentation": "Presentation does not go into PreTeXt source",
     "accessibility": "Accessibility issue",
     "mistake": "This feature should not have been added to LaTeX",
-    "archaic": "plain TeX that shoudl not be in LaTeX source"
+    "archaic": "plain TeX that should not be in LaTeX source"
 };
 
 // need to handle def and let somewhere
 // and edef, gdef, xdef
 // and global, long
 // newif
+
+export let alternatives = {
+    "textit": [["emph","emphasis"], ["term","terminology"],["alert","warning"]],
+    "textbf": [["emph","emphasis"], ["term","terminology"],["alert","warning"]],
+};
