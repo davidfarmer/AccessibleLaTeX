@@ -1,8 +1,8 @@
 
 import { scanForAnomalies } from './main.js'
-import { showErrors } from './scan.js'
+import { showErrors, Xshoweditmenu} from './scan.js'
 
-export { scanForAnomalies }
+// export { scanForAnomalies }
 
 if (sourceTextArea.addEventListener) {
   sourceTextArea.addEventListener('input', function() {

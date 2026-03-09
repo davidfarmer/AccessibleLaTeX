@@ -18,18 +18,59 @@
 <script type="module" src="src/test.js"></script>
 
 <script>
-function scrollToClass(className) {
-   const element = document.getElementsByClassName(className)[0];
-console.log("clicked!", document.getElementsByClassName(className));
+function scrollToClass(className,offset) {
+   const theseelements = document.getElementsByClassName(className);
+   var element;
+   if(offset == 0) {element = theseelements[0]}
+   else {element = theseelements[theseelements.length - 1]}
+// console.log("clicked!", document.getElementsByClassName(className));
    if (element) {
     // Scroll to the element
       element.scrollIntoView({ behavior:"smooth" });
+      element.focus();
       return true;
    } else {
       return false;
 }
 }
+
+function showeditmenu() {
+    console.log(document.activeElement)
+}
+
+
+function replacetex(oldvalue, newvalue, howmany) {
+//    let relevantelement = document.activeElement.closest('".'+oldvalue+'"');
+ //   let relevantelement = document.activeElement.closest("'[data-macro=" + '"' + oldvalue + '"]' + "'");
+    const thissearch = '[data-macro="' + oldvalue + '"]';
+    let relevantelement = document.activeElement.closest(thissearch);
+//    let relevantelement = document.activeElement.closest(".textit");
+console.log("X"+oldvalue+"Y");
+console.log("X"+thissearch+"Y");
+console.log("relevantelement:", relevantelement);
+
+    if(howmany == 0) {
+       relevantelement.remove()
+    } else if (howmany == -1) {
+       const theseelements = document.querySelectorAll(thissearch);
+console.log("theseelements:", theseelements);
+       for(const elt of theseelements) {
+          elt.remove()
+       }
+    }
+}
+
 </script>
+
+Upload LaTeX file to scan: <form>
+	<input type="file" id="fileInput">
+<!--	<input type="submit" value="Upload">
+-->
+</form>
+
+<br/>
+
+Or paste your LaTeX in this box:
 
     <textarea rows="8" cols="60" id=sourceTextArea placeholder="Type in this box."></textarea>
 
@@ -46,6 +87,70 @@ console.log("clicked!", document.getElementsByClassName(className));
 <p id="MathJaxArea"></p>
 -->
 
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const contentDisplay = document.getElementById('sourceTextArea');
+        const status = document.getElementById('status');
+        let fileContent = ''; // Stores the file content as a string
+ 
+        // Check for FileReader support
+        if (!window.FileReader) {
+//            setStatus('FileReader is not supported in your browser. Please upgrade.', 'error');
+console.log("error 1");
+//            fileInput.disabled = true;
+    
+        }
+ 
+        // Event listener for file selection
+        fileInput.addEventListener('change', handleFileSelect);
+ 
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) {
+ //               setStatus('No file selected.', 'warning');
+console.log("No file selected?");
+                return;
+            }
+ 
+            // Validate file size (<10MB)
+            if (file.size > 10 * 1024 * 1024) {
+//                setStatus('File too large! Maximum size is 10MB.', 'error');
+console.log("file too large");
+                return;
+            }
+ 
+            // Validate file type
+//            const allowedTypes = ['text/plain', 'text/csv', 'application/json'];
+//            if (!allowedTypes.includes(file.type)) {
+//                setStatus('Unsupported file type. Use .txt, .csv, or .json.', 'error');
+//                return;
+//            }
+ 
+            readFileAsText(file);
+        }
+ 
+        function readFileAsText(file) {
+            const reader = new FileReader();
+ 
+            reader.onload = (event) => {
+                fileContent = event.target.result; // Store content in variable
+                contentDisplay.value = fileContent; // Display content
+//                setStatus(`Loaded "${file.name}" (${file.size} bytes)`, 'success');
+console.log("loaded file");
+            };
+ 
+            reader.onerror = () => {
+                setStatus(`Error reading file: ${reader.error.message}`, 'error');
+            };
+ 
+            reader.readAsText(file);
+        }
+ 
+        function setStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+    </script>
 </body>
 </html>
 
