@@ -34,11 +34,6 @@ function scrollToClass(className,offset) {
 }
 }
 
-function showeditmenu() {
-    console.log(document.activeElement)
-}
-
-
 function replacetex(oldvalue, newvalue, howmany) {
 //    let relevantelement = document.activeElement.closest('".'+oldvalue+'"');
  //   let relevantelement = document.activeElement.closest("'[data-macro=" + '"' + oldvalue + '"]' + "'");
@@ -57,7 +52,24 @@ console.log("theseelements:", theseelements);
        for(const elt of theseelements) {
           elt.remove()
        }
+    } else if (howmany == 1) {
+       const thiselement = document.querySelector(thissearch);
+console.log("theseelements:", thiselement);
+       thiselement.replaceWith("\\" + newvalue)
+    }  else if (howmany == 1000) {
+       const theseelements = document.querySelectorAll(thissearch);
+console.log("theseelements:", theseelements);
+       for(const elt of theseelements) {
+          elt.replaceWith("\\" + newvalue)
+       }
     }
+}
+
+function closemenu() {
+   const thismenu = document.activeElement.parentElement;
+   const itemofinterest = thismenu.parentElement
+   itemofinterest.focus();
+   thismenu.remove()
 }
 
 </script>
@@ -137,6 +149,7 @@ console.log("file too large");
                 contentDisplay.value = fileContent; // Display content
 //                setStatus(`Loaded "${file.name}" (${file.size} bytes)`, 'success');
 console.log("loaded file");
+ //               processsource()
             };
  
             reader.onerror = () => {

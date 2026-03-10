@@ -6,10 +6,15 @@ import { showErrors, Xshoweditmenu} from './scan.js'
 
 if (sourceTextArea.addEventListener) {
   sourceTextArea.addEventListener('input', function() {
-       allErrors = [];
-//      echosourceTextArea.value = scanForAnomalies(sourceTextArea.value);
-      scannedTextArea.innerHTML = scanForAnomalies(sourceTextArea.value);
-      errorsDisplayArea.innerHTML = showErrors(allErrors);
+//       allErrors = [];
+//      scannedTextArea.innerHTML = scanForAnomalies(sourceTextArea.value);
+//      errorsDisplayArea.innerHTML = showErrors(allErrors);
+   processsource()
   });
 }
 
+function processsource() {
+      allErrors = [];
+      scannedTextArea.innerHTML = scanForAnomalies(sourceTextArea.value);
+      errorsDisplayArea.innerHTML = showErrors(allErrors);
+}

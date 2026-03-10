@@ -166,7 +166,8 @@ function logKeyDown(e) {
     editorLog("input_region", input_region);
 
     if (e.code == "Enter" && themenu) {
-       console.log("changing:", themenu)
+       document.activeElement.click();
+       console.log("clicked:", document.activeElement)
     } else if (e.code == "Enter") {
        console.log("adding menu")
        addEditMenuTo(input_region);
@@ -177,8 +178,15 @@ function logKeyDown(e) {
     }
     if (e.code == "Tab" && themenu) {
        e.preventDefault();
-       console.log("moving:", themenu)
+       let thismenuitem = document.activeElement;
+       if(thismenuitem.nextElementSibling) { thismenuitem.nextElementSibling.focus() }
+       else { thismenuitem.parentElement.children[0].focus() }
+       console.log("moved to:", document.activeElement)
     }
+}
+
+function wrapq(str) {
+   return "'" + str + "'"
 }
 
 function addEditMenuTo(elem) {
@@ -193,16 +201,16 @@ function addEditMenuTo(elem) {
 //   let options = ["textit", [["emph","emphasis"], ["term","terminology"]]];
 //   let toreplace = options[0];
 
-   var innermenu = '<span class="option" tabindex="0" >Leave as-is (will be ignored later)</span>';
+   var innermenu = '<span class="option" tabindex="0" onClick="closemenu()">Leave as-is (will be ignored later)</span>';
    innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + "'" + toreplace + "'" + ',0' + ',0)">Delete</span>';
    innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + "'" + toreplace + "'" + ',-1' + ',-1)">Delete everywhere</span>';
   for(const optionpair of options) {
-      var thisoption = '<span onClick="replacetex(' + toreplace + "," + optionpair[0] + ',1)" tabindex="0"  class="option">';
+      var thisoption = '<span onClick="replacetex(' + "'" + toreplace + "'" + "," + "'" + optionpair[0]+ "'" + ',1)" tabindex="0"  class="option">';
       thisoption +=  optionpair[0]
-      thisoption +=  '</span>\n';
-      thisoption +=  '<span onClick="replacetex('  + toreplace + ","+ optionpair[0] + ',1000)" tabindex="0"  class="option">';
+      thisoption +=  '</span>';
+      thisoption +=  '<span onClick="replacetex('  + wrapq(toreplace) + ","+ wrapq(optionpair[0]) + ',1000)" tabindex="0"  class="option">';
       thisoption +=  optionpair[0] + ' (replace everywhere)';
-      thisoption +=  '</span>\n';
+      thisoption +=  '</span>';
    
       innermenu += thisoption   
    }
