@@ -7,3 +7,12 @@ export function deleteComments(str) {
 
    return str
 }
+
+export function makeSafe(str) {
+
+   str = str.replace(/> */g, "\\gt ");
+   str = str.replace(/< */g, "\\lt ");
+
+   return str
+}
+

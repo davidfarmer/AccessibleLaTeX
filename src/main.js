@@ -6,4 +6,5 @@ export {
 }
 
 globalThis.allErrors = [];
+globalThis.texErrors = [];
 

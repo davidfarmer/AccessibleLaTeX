@@ -7,14 +7,15 @@ Output: list of warnings, errors, and fatalErrors
 2/22/26: first work
 */
 
-import {deleteComments} from './utils.js'
-import {badPlainTeX, badEverywhereMacros, badBodyEnvironments, alternatives} from './data.js'
+import {deleteComments, makeSafe} from './utils.js'
+import {badPlainTeX, badPlainTeXdirectives, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
 
 export function scanForAnomalies(str) {
 
    str = deleteComments(str);
+   str = makeSafe(str);
 
-   str = str.replace(/\\end{document}.*/s, "");  // do after deleting comments
+   str = str.replace(/\\end{document}.*/s, "");  // after deleting comments, in case an end was commented out
 
    let preambleBodyBiblio = separatePieces(str);
 
@@ -22,20 +23,34 @@ export function scanForAnomalies(str) {
    let maintext = preambleBodyBiblio[1];
    let bibliography = preambleBodyBiblio[2];
 
+   maintext = fixPlainTeX(maintext,badPlainTeXdirectives);
+
    maintext = noBodyMacros(maintext);
 
    for(const lookfor of badEverywhereMacros) {
-console.log(lookfor);
+//console.log(lookfor);
       preamble = noPlainTeX(preamble, lookfor);
       maintext = noPlainTeX(maintext, lookfor)
    }
+
+   for(const lookfor of badEverywhereMacrosPlus) {
+//console.log(lookfor);
+      preamble = noPlainTeX(preamble, lookfor,"hasarg");
+      maintext = noPlainTeX(maintext, lookfor,"hasarg")
+   }
+   for(const lookfor of badEverywhereMacrosLine) {
+//console.log(lookfor);
+      preamble = noPlainTeX(preamble, lookfor,"line");
+      maintext = noPlainTeX(maintext, lookfor,"line")
+   }
+
 
    for(const lookfor of badPlainTeX) {
       maintext = noPlainTeX(maintext, lookfor)
    }
 
    for(const lookfor of badBodyEnvironments) {
-      maintext = noBadEnvironments(maintext, lookfor)
+      maintext = noBadEnvironments(maintext, lookfor, "env")
    }
 
 //   console.log("maintext",maintext);
@@ -81,15 +96,16 @@ function noBodyMacros(str) {  // assumes str is body, so should not have any mac
 function noBadEnvironments(str, lookingFor) {
 
    const thesetagsName = lookingFor[0];
-   for(const lookfor of lookingFor[1]) {
+   const thesetagsType = lookingFor[1];
+   for(const lookfor of lookingFor[2]) {
 
       const re = new RegExp("(\\\\(begin|end){\\s*" + lookfor + "})", 'g');
 
       if(str.match(re)) {
 
-          allErrors.push(["error", thesetagsName]);
+          allErrors.push(["error", thesetagsType, lookfor]);
 
-          str = str.replace(re, '<span class="error ' + thesetagsName + '">$1</span>');
+          str = str.replace(re, '<span tabindex="0" data-macro="' + lookfor + '" class="error ' + lookfor + '">$1</span>');
       }
    }
 
@@ -101,24 +117,71 @@ export function Xshoweditmenu() {
     console.log(this)
 }
 
-function noPlainTeX(str, lookingFor) {
+function fixPlainTeX(str, lookingFor) {
 
 console.log(lookingFor);
    const thesetagsType = lookingFor[0];
    const thesetagsName = lookingFor[1];
    for (const lookfor of lookingFor[2]) {
   //    const thesetagsOr = lookingFor[1].join("|");
-      const thesetagsOr = lookfor;  
-      console.log("checking ",thesetagsOr);
+      console.log("checking ",lookfor);
+      var lookforname;
+      var replacement;
+      if(typeof lookfor === 'string') {
+         lookforname = "\\\\" + lookfor + "\\b";
+         replacement = "" }
+      else {
+        lookforname = "{ *\\\\" + lookfor[0] + "\\b *";
+        replacement = "\\" + lookfor[1] + "{"
+     }
 
-//   const re = new RegExp(`(\\\\(${thesetagsOr})\\b)`, 'g');
-      const re = new RegExp("(\\\\(" + thesetagsOr + ")\\b)", 'g');
+     let re = new RegExp(lookforname, 'g');
+
+console.log("re",re);
+
+     if(str.match(re)) {
+
+        allErrors.push(["tex", thesetagsType, lookfor]);
+        str = str.replace(re, replacement)
+     }
+  }
+    return str
+}
+
+function noPlainTeX(str, lookingFor, type="") {
+
+//console.log(lookingFor);
+   const thesetagsType = lookingFor[0];
+   const thesetagsName = lookingFor[1];
+   for (const lookfor of lookingFor[2]) {
+  //    const thesetagsOr = lookingFor[1].join("|");
+  //    console.log("checking ",lookfor);
+      var lookforname;
+      if(typeof lookfor === 'string') { lookforname = lookfor }
+      else { lookforname = lookfor[0] }
+
+      let re = new RegExp("(\\\\(" + lookforname + ")\\b)", 'g');
+//console.log("             Q         re",lookforname,"Q",re);
+
+      if(type=="hasarg") {
+          let researchstring = "(\\\\(" + lookforname + ")\\b\\*?";
+          for(let i=0; i < lookfor[1]; ++i) {
+             researchstring += "{[^{}]*}"
+          }
+          researchstring += ")";
+          re = new RegExp(researchstring, 'g');
+//console.log("                      re",lookforname,"P",re);
+      }
+
+      if(type=="line") {
+          re = new RegExp("(\\\\(" + lookforname + ")\\b.*)", 'g');
+      }
 
       if(str.match(re)) {
 
-          allErrors.push(["error", thesetagsType , lookfor]);
+          allErrors.push(["error", thesetagsType , lookforname]);
 
-          str = str.replace(re, '<span tabindex="0" data-macro="' + lookfor + '" ' +  'class="error' + ' ' + thesetagsType + ' ' + lookfor + '">$1</span>');
+          str = str.replace(re, '<span tabindex="0" data-macro="' + lookforname + '" ' +  'class="error' + ' ' + thesetagsType + ' ' + lookforname + '">$1</span>');
       }
 
    }
@@ -128,15 +191,17 @@ console.log(lookingFor);
 }
 
 
-export function showErrors(errs) {
+export function showErrors(errs, type="error") {
 
    let theseerrors = "";
 
    for (let err of errs){
+     if(err[0] == type) {
+//console.log("typeof ", err[2], "X",typeof err[2]);
+       let thiserr = '<span class="' + err[0] + ' ' + 'root' +  err[2] + ' ' + err[1]  + '">' + err[2] + '</span>' + ' <span onclick="scrollToClass(' + "'" + err[2] + "',0" + ')">first</span>' + ' ' + '<span onclick="scrollToClass(' + "'" + err[2] + "',-1" + ')">last</span>' +  '\n' + "<br/>";
 
-     let thiserr = '<span class="' + err[0] + ' ' + 'root' +  err[2] + ' ' + err[1]  + '">' + err[2] + '</span>' + ' <span onclick="scrollToClass(' + "'" + err[2] + "',0" + ')">first</span>' + ' ' + '<span onclick="scrollToClass(' + "'" + err[2] + "',-1" + ')">last</span>' +  '\n' + "<br/>";
-
-     theseerrors += thiserr
+       theseerrors += thiserr
+     }
 
    }
 
@@ -202,14 +267,14 @@ function addEditMenuTo(elem) {
 //   let toreplace = options[0];
 
    var innermenu = '<span class="option" tabindex="0" onClick="closemenu()">Leave as-is (will be ignored later)</span>';
-   innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + "'" + toreplace + "'" + ',0' + ',0)">Delete</span>';
-   innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + "'" + toreplace + "'" + ',-1' + ',-1)">Delete everywhere</span>';
+   innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + wrapq(toreplace) + ',0' + ',0)">Delete</span>';
+   innermenu += '<span class="option" tabindex="0"  onClick="replacetex(' + wrapq(toreplace) + ',-1' + ',-1)">Delete everywhere</span>';
   for(const optionpair of options) {
-      var thisoption = '<span onClick="replacetex(' + "'" + toreplace + "'" + "," + "'" + optionpair[0]+ "'" + ',1)" tabindex="0"  class="option">';
-      thisoption +=  optionpair[0]
+      var thisoption = '<span onClick="replacetex(' + wrapq(toreplace) + "," + "'" + optionpair[0]+ "'" + ',1)" tabindex="0"  class="option">';
+      thisoption +=  optionpair[1]
       thisoption +=  '</span>';
       thisoption +=  '<span onClick="replacetex('  + wrapq(toreplace) + ","+ wrapq(optionpair[0]) + ',1000)" tabindex="0"  class="option">';
-      thisoption +=  optionpair[0] + ' (replace everywhere)';
+      thisoption +=  optionpair[1] + ' (replace everywhere)';
       thisoption +=  '</span>';
    
       innermenu += thisoption   

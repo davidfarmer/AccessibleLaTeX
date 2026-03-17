@@ -16,5 +16,5 @@ if (sourceTextArea.addEventListener) {
 function processsource() {
       allErrors = [];
       scannedTextArea.innerHTML = scanForAnomalies(sourceTextArea.value);
-      errorsDisplayArea.innerHTML = showErrors(allErrors);
+      errorsDisplayArea.innerHTML = showErrors(allErrors, "tex") + "XXXX" + showErrors(allErrors);
 }
