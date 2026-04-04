@@ -21,7 +21,15 @@ export let badPlainTeXdirectives = [  // replace, or just delete
   ["textsl","testsl"],
   "normalfont"
   ]
-]
+];
+
+export let unnecessaryLaTeX = [
+  "markup", "foo", [
+  ["cref","ref"],  // cleverref
+  ["Cref","ref"],  // cleverref
+  ["eqref","ref"] // PreTeXt does not distinquish
+  ]
+];
 
 // NewDocumentCommand
 //  declaretheorem , declaretheoremstyle

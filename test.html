@@ -15,7 +15,15 @@
 <body>
 <h1>Accessible LaTeX</h1>
 
-<script type="module" src="src/test.js"></script>
+<script type="module" src="./src/test.js">
+</script>
+<!--
+<script type="module" src="./src/test.js">
+<script type="module">
+
+     import {replacetex} from './src/test.js'; 
+</script>
+-->
 
 <script>
 function scrollToClass(className,offset) {
@@ -114,9 +122,10 @@ console.log("error 1");
         }
  
         // Event listener for file selection
-        fileInput.addEventListener('change', handleFileSelect);
- 
-        function handleFileSelect(event) {
+//        fileInput.addEventListener('change', handleFileSelect);
+// 
+//        async function handleFileSelect(event) {
+fileInput.addEventListener('change', async (e) => {
             const file = event.target.files[0];
             if (!file) {
  //               setStatus('No file selected.', 'warning');
@@ -138,32 +147,107 @@ console.log("file too large");
 //                return;
 //            }
  
-            readFileAsText(file);
-        }
+     //       readFileAsText(file);
+ //       }
  
-        function readFileAsText(file) {
-            const reader = new FileReader();
+let fullcontent = "";
+try {
+    const zip = await JSZip.loadAsync(file); // Step 2: Parse the zip
+
+console.log("zip",zip);
+    // Step 3: Iterate over entries
+    for (const [relativePath, entry] of Object.entries(zip.files)) {
+      // Skip directories (we’ll fix this later!)
+      if (entry.dir) continue;
  
-            reader.onload = (event) => {
-                fileContent = event.target.result; // Store content in variable
-                contentDisplay.value = fileContent; // Display content
+      // Step 4: Extract content as blob
+//      const content = await entry.async('blob');
+      const content = entry.async('blob');
+let aaaa=await new Response(content).text();
+console.log("this contennt keys", Object.keys(await content));
+console.log("this contennt content", await content);
+await console.log("await this contennt content text", await new Response(content).text());
+console.log("this contennt content text aaaa", aaaa);
+      fullcontent += await new Response(content);
+      fullcontent += await new Response(content).text();
+ 
+      fullcontent += await content;
+      fullcontent += aaaa;
+      fullcontent += typeof zip;
+      fullcontent +=  zip;
+
+console.log("this contennt keys", Object.keys(await content));
+await console.log("await this contennt content text", await new Response(content).text());
+console.log("this contennt content text aaaa", aaaa);
+    }
+  } catch (error) {
+    console.error('Error extracting zip:', error);
+console.log("fileContent", fileContent.substring(1,30));
+    fullcontent = "hello, sorry"; //zip
+  }
+  
+       //////         contentDisplay.value = fileContent; // Display content
+                contentDisplay.value = fullcontent; // Display content
 //                setStatus(`Loaded "${file.name}" (${file.size} bytes)`, 'success');
 console.log("loaded file");
  //               processsource()
-            };
  
-            reader.onerror = () => {
-                setStatus(`Error reading file: ${reader.error.message}`, 'error');
-            };
- 
-            reader.readAsText(file);
-        }
+   //         reader.onerror = () => {
+   //             setStatus(`Error reading file: ${reader.error.message}`, 'error');
+   //         };
+// 
+//            reader.readAsText(file);
+});
  
         function setStatus(message, type = 'info') {
             status.textContent = message;
             status.className = `status ${type}`;
         }
     </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!--
+<input type="file" id="zipFileInput" accept=".zip">
+-->
+<input type="file" id="zipFileInput">
+
+<script>
+
+let fullcontent = "";
+document.getElementById('zipFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  console.log("filename", file["name"]);
+  if (!file) return;
+ 
+  try {
+    const zip = await JSZip.loadAsync(file); // Step 2: Parse the zip
+ 
+    // Step 3: Iterate over entries
+    for (const [relativePath, entry] of Object.entries(zip.files)) {
+console.log("relativePath", relativePath);
+      // Skip directories (we’ll fix this later!)
+      if (entry.dir) continue;
+ 
+      // Step 4: Extract content as blob
+      const content = await entry.async('blob');
+ 
+      // Step 5: Save the file
+//      saveAs(content, relativePath);
+
+      console.log("content",content);
+  //    console.log("content text", await new Response(content).text());
+     fullcontent += await new Response(content).text();
+      console.log("fullcontent", typeof fullcontent, " is ",fullcontent.substring(1,30));
+
+    }
+  } catch (error) {
+    console.error('Error extracting zip:', error);
+  }
+   contentDisplay.value = fullcontent;
+});
+</script>
+
 </body>
 </html>
 

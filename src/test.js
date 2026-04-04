@@ -18,3 +18,4 @@ function processsource() {
       scannedTextArea.innerHTML = scanForAnomalies(sourceTextArea.value);
       errorsDisplayArea.innerHTML = showErrors(allErrors, "tex") + "XXXX" + showErrors(allErrors);
 }
+

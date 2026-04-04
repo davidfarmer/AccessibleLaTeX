@@ -8,14 +8,42 @@ Output: list of warnings, errors, and fatalErrors
 */
 
 import {deleteComments, makeSafe} from './utils.js'
-import {badPlainTeX, badPlainTeXdirectives, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
+import {badPlainTeX, badPlainTeXdirectives, unnecessaryLaTeX, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
 
-export function scanForAnomalies(str) {
+export function trimjunk(str) {
 
    str = deleteComments(str);
    str = makeSafe(str);
-
    str = str.replace(/\\end{document}.*/s, "");  // after deleting comments, in case an end was commented out
+
+   return str
+}
+
+export function fixbasic(str) {
+
+console.log("fixbasic");
+   let theseErrors = [];
+
+   str = trimjunk(str);
+
+   [str, theseErrors] = fixPlainTeX(str,badPlainTeXdirectives, theseErrors);
+
+   [str, theseErrors] = fixPlainTeX(str,unnecessaryLaTeX, theseErrors);
+
+console.log("fixbasic", theseErrors);
+
+   return [str, theseErrors]
+}
+
+export function scanForAnomalies(str) {
+
+   let basicerrors = [];
+
+   [str, basicerrors] = fixbasic(str);
+
+console.log("after fixbasic", str.substring(1,30));
+
+//   str = trimjunk(str);
 
    let preambleBodyBiblio = separatePieces(str);
 
@@ -23,7 +51,8 @@ export function scanForAnomalies(str) {
    let maintext = preambleBodyBiblio[1];
    let bibliography = preambleBodyBiblio[2];
 
-   maintext = fixPlainTeX(maintext,badPlainTeXdirectives);
+let junk;
+   [maintext, junk] = fixPlainTeX(maintext,badPlainTeXdirectives, []);
 
    maintext = noBodyMacros(maintext);
 
@@ -83,11 +112,11 @@ function separatePieces(str) {
 
 function noBodyMacros(str) {  // assumes str is body, so should not have any macros
 
-   if(str.match(/\\newcommand/)) { 
+   if(str.match(/\\(re)?newcommand/)) { 
 
        allErrors.push(["warning","macros_in_body"]);
 
-       str = str.replace(/(\\newcommand.*)/g, '<span class="warning macros_in_body">$1</span>');
+       str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">$1</span>');
    }
 
    return str
@@ -117,23 +146,27 @@ export function Xshoweditmenu() {
     console.log(this)
 }
 
-function fixPlainTeX(str, lookingFor) {
+function fixPlainTeX(str, lookingFor, errorsSoFar) {
 
 console.log(lookingFor);
    const thesetagsType = lookingFor[0];
    const thesetagsName = lookingFor[1];
    for (const lookfor of lookingFor[2]) {
   //    const thesetagsOr = lookingFor[1].join("|");
-      console.log("checking ",lookfor);
+      console.log("checking lookfor",lookfor);
       var lookforname;
       var replacement;
+      // if we are looking for a string, we want to delete it
       if(typeof lookfor === 'string') {
          lookforname = "\\\\" + lookfor + "\\b";
-         replacement = "" }
-      else {
+         replacement = ""
+      } else if (thesetagsName == "tex_fonts") {
         lookforname = "{ *\\\\" + lookfor[0] + "\\b *";
         replacement = "\\" + lookfor[1] + "{"
-     }
+      } else {
+        lookforname = "\\\\" + lookfor[0] + "\\b *";
+        replacement = "\\" + lookfor[1]
+      }
 
      let re = new RegExp(lookforname, 'g');
 
@@ -141,11 +174,11 @@ console.log("re",re);
 
      if(str.match(re)) {
 
-        allErrors.push(["tex", thesetagsType, lookfor]);
+        errorsSoFar.push(["tex", thesetagsType, lookfor]);
         str = str.replace(re, replacement)
      }
   }
-    return str
+    return [str, errorsSoFar]
 }
 
 function noPlainTeX(str, lookingFor, type="") {
