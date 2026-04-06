@@ -10,7 +10,7 @@ Output: list of warnings, errors, and fatalErrors
 const anomalyStatus = document.getElementById('anomalyStatus');
 
 // import {deleteComments, makeSafe} from './utils.js'
-import {badPlainTeX, badPlainTeXdirectives, unnecessaryLaTeX, specialBadMacros, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
+import {badPlainTeX, badPlainTeXdirectives, specialBadMacros, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
 
 // export function trimjunk(str) {
 // 

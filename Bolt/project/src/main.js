@@ -2,7 +2,7 @@
 
 import {trimjunk} from './utils.js';
 import {separatePieces, scanForAnomalies} from './scan.js';
-import {badPlainTeX, badPlainTeXdirectives, unnecessaryLaTeX, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
+import {badPlainTeX, badPlainTeXdirectives, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
 
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
@@ -229,7 +229,7 @@ console.log("baseFile", baseFile);
    filesDictionary[baseFile] = expandInputs(filesDictionary[baseFile]);
    let mainfile = filesDictionary[baseFile];
    mainfile = fixPlainTeX(mainfile, badPlainTeXdirectives);
-   mainfile = fixPlainTeX(mainfile,unnecessaryLaTeX);
+//   mainfile = fixPlainTeX(mainfile,unnecessaryLaTeX);
    let tmppp = scanForAnomalies(mainfile);
    filesDictionary["TheMainFile.tex"] = tmppp;
    displayFileContent("TheMainFile.tex");
@@ -315,7 +315,24 @@ function fixPlainTeX(str, lookingFor) {
         str = str.replace(re, replacement)
      }
   }
+    str = specialPreprocess(str);
     return str
+}
+
+function specialPreprocess(text) {
+
+    let findEqref = "\\(\\\\ref{([^{}]+)}\\)";
+    let re = new RegExp(findEqref, 'g');
+    const thisMatch = text.match(re);
+
+//console.log("str.match(re)", str.match(re));
+     if(thisMatch) {
+        const replacement = "\\eqref{$1}"
+        showProcessStatus(["(\\ref{...})",  "\\eqref{...}"], thisMatch.length);
+        text = text.replace(re, replacement)
+     }
+
+    return text
 }
 
 function noBadEnvironments(str, lookingFor) {

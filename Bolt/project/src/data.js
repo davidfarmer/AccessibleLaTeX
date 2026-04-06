@@ -17,13 +17,13 @@ export let badPlainTeXdirectives = [  // replace, or just delete
   ]
 ];
 
-export let unnecessaryLaTeX = [
-  "markup", "foo", [
-  ["cref","ref"],  // cleverref
-  ["Cref","ref"],  // cleverref
-  ["eqref","ref"] // PreTeXt does not distinquish
-  ]
-];
+//export let unnecessaryLaTeX = [
+//  "markup", "foo", [
+//  ["cref","ref"],  // cleverref
+//  ["Cref","ref"],  // cleverref
+//  ["eqref","ref"] // PreTeXt does not distinquish
+//  ]
+//];
 
 // NewDocumentCommand
 //  declaretheorem , declaretheoremstyle
