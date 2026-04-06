@@ -21,31 +21,9 @@ import {badPlainTeX, badPlainTeXdirectives, unnecessaryLaTeX, specialBadMacros, 
 //    return str
 // }
 
-export function fixbasic(str) {
-
-console.log("fixbasic");
-   let theseErrors = [];
-
-   str = trimjunk(str);
-
-   [str, theseErrors] = fixPlainTeX(str,badPlainTeXdirectives, theseErrors);
-
-   [str, theseErrors] = fixPlainTeX(str,unnecessaryLaTeX, theseErrors);
-
-console.log("fixbasic", theseErrors);
-
-   return [str, theseErrors]
-}
-
 export function scanForAnomalies(str) {
 
    let basicerrors = [];
-
-//   [str, basicerrors] = fixbasic(str);
-
-console.log("after fixbasic", str.substring(1,30));
-
-//   str = trimjunk(str);
 
    let preambleBodyBiblio = separatePieces(str);
 
@@ -126,7 +104,7 @@ function noBodyMacros(str) {  // assumes str is body, so should not have any mac
 
 //       allErrors.push(["warning","macros_in_body"]);
 
-       str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">ooooooo$1</span>');
+       str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">1</span>');
    }
 
    return str
@@ -164,7 +142,7 @@ export function Xshoweditmenu() {
 
 function fixPlainTeX(str, lookingFor) {
 
-console.log(lookingFor);
+//console.log(lookingFor);
    const thesetagsType = lookingFor[0];
    const thesetagsName = lookingFor[1];
    for (const lookfor of lookingFor[2]) {

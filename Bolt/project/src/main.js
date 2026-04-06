@@ -283,7 +283,7 @@ console.log("found a yet deeper input|include");
 
 function fixPlainTeX(str, lookingFor) {
 
-console.log(lookingFor);
+//console.log("in main", lookingFor);
    const thesetagsType = lookingFor[0];
    const thesetagsName = lookingFor[1];
    for (const lookfor of lookingFor[2]) {
@@ -518,7 +518,9 @@ console.log("of",text.substring(0,50));
   let remaining_separators = [];
   for(let i=0; i<separators.length-1; ++i) { remaining_separators.push(separators[i+1]) }
 console.log("remaining_separators",remaining_separators);
-  let text_list = text.split("\\" + this_separator);
+  let re = new RegExp("\\\\" + this_separator + "\\b", 'g');
+//  let text_list = text.split("\\" + this_separator + "\b");
+  let text_list = text.split(re);
 console.log("length of text_list", text_list.length);
   if(text_list.length == 1) { return spliton(text_list[0], remaining_separators) }
   for (let [i, value] of text_list.entries()) {

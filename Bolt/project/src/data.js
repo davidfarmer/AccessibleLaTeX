@@ -14,7 +14,6 @@ export let badPlainTeXdirectives = [  // replace, or just delete
   ["sf","textsf"],
   [ "sffamily","textss"],
   ["textsl","testsl"],
-  "normalfont"
   ]
 ];
 
@@ -38,7 +37,7 @@ export let specialBadMacros = [
 export let badEverywhereMacros = [
    ["unused","conditionals", ["if","fi","iffalse","then","else","loop","repeat"]],
    ["presentation","font_size", ["tiny","scriptsize","footnotesize","small","normalsize",
-                  "large","Large","LARGE", "huge", "Huge"]],
+                  "large","Large","LARGE", "huge", "Huge", "normalfont"]],
    ["presentation","spacing_vertical", ["smallskip","medskip","bigskip", "vfil","vfill"]],
    ["presentation","archaic_tex", ["centerline", "centering", "noindent", "par"]],
    ["mistake","nonstructural", ["ensuremath"]],
