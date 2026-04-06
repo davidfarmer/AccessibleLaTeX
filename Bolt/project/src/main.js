@@ -17,7 +17,7 @@ const selectedFileContent = document.getElementById('selectedFileContent');
 let filesDictionary = {};
 let baseFile = "";
 let texFiles = {};
-const trackedFileTypes = ["tex", "pdf", "eps", "png", "ps", "txt"];
+const trackedFileTypes = ["tex", "pdf", "eps", "png", "ps", "txt", "sty", "bib", "bbl"];
 let filesTypes = {"other": 0}
 for(let l=0; l<trackedFileTypes.length; ++l) { filesTypes[trackedFileTypes[l]] = 0 }
 
@@ -199,7 +199,7 @@ console.log("Object.keys(filesDictionary)",Object.keys(filesDictionary));
   for(let l=0; l<files.length; ++l) {
      const fil = files[l];
      const extension = fil.replace(/^.*\.([^.]*)$/, "$1");
-console.log("fil",fil,"has extension:",extension);
+// console.log("fil",fil,"has extension:",extension);
      if(trackedFileTypes.includes(extension)) { ++filesTypes[extension] }
      else { ++filesTypes["other"] }
      if(extension == "tex") {
@@ -233,12 +233,6 @@ console.log("baseFile", baseFile);
    let tmppp = scanForAnomalies(mainfile);
    filesDictionary["TheMainFile.tex"] = tmppp;
    displayFileContent("TheMainFile.tex");
-//   let full_structure = splitup(tmppp);
-   let full_structure = splitup(document.getElementById("selectedFileContent").textContent);
-   let visible_structure = showstructure(full_structure);
-console.log("visible_structure", visible_structure);
-   document.getElementById('structureSection').innerHTML = visible_structure;
-//   document.getElementById('scannedTextArea').innerHTML = tmppp;
 }
 
 function expandInputs(text) {
@@ -294,7 +288,7 @@ console.log(lookingFor);
    const thesetagsName = lookingFor[1];
    for (const lookfor of lookingFor[2]) {
   //    const thesetagsOr = lookingFor[1].join("|");
-      console.log("checking lookfor",lookfor);
+//      console.log("checking lookfor",lookfor);
       var lookforname;
       var replacement;
       // if we are looking for a string, we want to delete it
@@ -311,12 +305,12 @@ console.log(lookingFor);
    
      let re = new RegExp(lookforname, 'g');
    
-console.log("re",re);
+//console.log("re",re);
      const thisMatch = str.match(re);
 //     if(str.match(re)) {
      if(thisMatch) {
    
-console.log("str.match(re)", str.match(re));
+//console.log("str.match(re)", str.match(re));
         showProcessStatus(lookfor, thisMatch.length);
         str = str.replace(re, replacement)
      }
@@ -395,15 +389,17 @@ console.log("filesDictionary keys", Object.keys(filesDictionary));
 
 function displayFileContent(fileName) {
   const content = filesDictionary[fileName];
-  const isLarge = content.length > 390000;
-  const displayContent = isLarge ? content.substring(0, 390000) + '\n... (truncated)' : content;
+//  const isLarge = content.length > 390000;
+//  const displayContent = isLarge ? content.substring(0, 390000) + '\n... (truncated)' : content;
+  const displayContent = content;
 
 
 //    <div class="file-content">${escapeHtml(displayContent)}</div>
   selectedFileContent.innerHTML = `
     <div class="file-content">${displayContent}</div>
-    <button class="copy-button" id="copyButton">Copy to Clipboard</button>
   `;
+//    <button class="copy-button" id="copyButton">Copy to Clipboard</button>
+//    <button class="structure-button" id="structureButton">Show structure</button>
 
   document.getElementById('copyButton').addEventListener('click', () => {
 //    navigator.clipboard.writeText(content);
@@ -415,6 +411,14 @@ function displayFileContent(fileName) {
       btn.classList.remove('copied');
       btn.textContent = 'Copy to Clipboard';
     }, 2000);
+  });
+//}
+  document.getElementById('structureButton').addEventListener('click', () => {
+//    navigator.clipboard.writeText(content);
+   let full_structure = splitup(document.getElementById("selectedFileContent").textContent);
+   let visible_structure = showstructure(full_structure);
+// console.log("visible_structure", visible_structure);
+   document.getElementById('structureSection').innerHTML = visible_structure;
   });
 }
 
@@ -429,7 +433,7 @@ function showUploadStatus(message, type, action="new") {
 
 function showProcessStatus(substitution, num) {
    document.getElementById('preprocessSection').className = `show status`;
-   let message = "\\" + substitution[0] + " replaced by \\" + substitution[1];
+   let message =  substitution[0] + " replaced by " + substitution[1];
    if(!substitution[1]) {  message = "\\" + substitution[0] + " deleted "}
    message += " " + num + " times\n";
    preprocessStatus.textContent += message;
@@ -466,12 +470,13 @@ function splitup(text) {
    console.log("macros", macros);
    preamble = preamble.replace(/\\(re)?newcommand.*/g, "");
    let packages = preamble.match(/\\usepackage.*/g);
-   preamble = preamble.replace(/\\usepackage.*/g);
+   preamble = preamble.replace(/\\usepackage.*/g, "");
 
    let text_structured = {
        "title": textTitle.trim(),
        "macros": macros,
-       "preamble": preamble.trim(),
+       "packages": packages,
+       "preamble": preamble.trim().replace(/\n{2,}/g, "\n"),
        "content": maintext.trim(),
        "bibliography": bibliography.trim(),
    }
@@ -506,15 +511,25 @@ function splitup(text) {
 }
 
 function spliton(text, separators) {
+console.log("spliton of",separators);
+console.log("of",text.substring(0,50));
   if(separators.length == 0) { return text.trim() }
   let this_separator = separators[0];
   let remaining_separators = [];
-  for(let i=0; i<separators.length; ++i) { remaining_separators.push(separators[i+1]) }
+  for(let i=0; i<separators.length-1; ++i) { remaining_separators.push(separators[i+1]) }
+console.log("remaining_separators",remaining_separators);
   let text_list = text.split("\\" + this_separator);
+console.log("length of text_list", text_list.length);
+  if(text_list.length == 1) { return spliton(text_list[0], remaining_separators) }
   for (let [i, value] of text_list.entries()) {
        value = value.trim();
+       const this_title = "";
        if(!value.startsWith("{")) {
-         if(i == 0) { text_list[i] = {"type": "introduction", "contents": value} }
+         if(i == 0) {
+           text_list[i] = {"type": "introduction",
+                           "contents": spliton(value, remaining_separators)
+           }
+         }
          else {
            alert("no " + this_separator + " " + i + " no title: " + value.substring(0,50))
          }

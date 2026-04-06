@@ -10,7 +10,7 @@ Output: list of warnings, errors, and fatalErrors
 const anomalyStatus = document.getElementById('anomalyStatus');
 
 // import {deleteComments, makeSafe} from './utils.js'
-import {badPlainTeX, badPlainTeXdirectives, unnecessaryLaTeX, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
+import {badPlainTeX, badPlainTeXdirectives, unnecessaryLaTeX, specialBadMacros, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
 
 // export function trimjunk(str) {
 // 
@@ -61,21 +61,25 @@ console.log("maintext 1", maintext.substring(1,40));
 
    for(const lookfor of badEverywhereMacros) {
 //console.log(lookfor);
-      preamble = noPlainTeX(preamble, lookfor);
-      maintext = noPlainTeX(maintext, lookfor)
+      preamble = noPlainTeX(preamble, lookfor,"", "delete");
+      maintext = noPlainTeX(maintext, lookfor,"", "delete");
    }
+   for(const lookfor of specialBadMacros){
+      preamble = noPlainTeX(preamble, lookfor,"", "delete", "in the preamble");
+      maintext = noPlainTeX(maintext, lookfor,"", "delete", "in the main text")
+}
 
 console.log("maintext 2", maintext.substring(1,40));
 
    for(const lookfor of badEverywhereMacrosPlus) {
 //console.log(lookfor);
-      preamble = noPlainTeX(preamble, lookfor,"hasarg");
-      maintext = noPlainTeX(maintext, lookfor,"hasarg")
+      preamble = noPlainTeX(preamble, lookfor,"hasarg","delete");
+      maintext = noPlainTeX(maintext, lookfor,"hasarg","delete")
    }
    for(const lookfor of badEverywhereMacrosLine) {
 //console.log(lookfor);
-      preamble = noPlainTeX(preamble, lookfor,"line");
-      maintext = noPlainTeX(maintext, lookfor,"line")
+      preamble = noPlainTeX(preamble, lookfor,"line", "delete"," -- only use 'newcommand' for macros");
+      maintext = noPlainTeX(maintext, lookfor,"line", "delete"," -- only use 'newcommand', and only in the preamble")
    }
 
 console.log("maintext 3", maintext.substring(1,40));
@@ -85,7 +89,7 @@ console.log("maintext 3", maintext.substring(1,40));
    }
 
    for(const lookfor of badBodyEnvironments) {
-      maintext = noBadEnvironments(maintext, lookfor, "env")
+      maintext = noBadEnvironments(maintext, lookfor, "env", "delete")
    }
 
 //   console.log("maintext",maintext);
@@ -128,7 +132,7 @@ function noBodyMacros(str) {  // assumes str is body, so should not have any mac
    return str
 }
 
-function noBadEnvironments(str, lookingFor) {
+function noBadEnvironments(str, lookingFor,env="",action="", extra="") {
 
    const thesetagsName = lookingFor[0];
    const thesetagsType = lookingFor[1];
@@ -138,10 +142,15 @@ function noBadEnvironments(str, lookingFor) {
 
       if(str.match(re)) {
 
-    showAnomalyStatus(thesetagsName, thesetagsType, lookfor);
    //       allErrors.push(["error", thesetagsType, lookfor]);
 
-          str = str.replace(re, '<span tabindex="0" data-macro="' + lookfor + '" class="error ' + lookfor + '">$1</span>');
+        if(action=="delete") {
+    showDeleteStatus(thesetagsName, lookfor, str.match(re).length, extra);
+          str = str.replace(re, "");
+      } else {
+          str = str.replace(re, '<span tabindex="0" data-macro="' + lookfor + '" class="error ' + lookfor + '" onclick="addEditMenuTo(this)">$1</span>');
+    showAnomalyStatus(thesetagsName, thesetagsType, lookfor);
+      }
       }
    }
 
@@ -160,7 +169,7 @@ console.log(lookingFor);
    const thesetagsName = lookingFor[1];
    for (const lookfor of lookingFor[2]) {
   //    const thesetagsOr = lookingFor[1].join("|");
-      console.log("checking lookfor",lookfor);
+//      console.log("checking lookfor",lookfor);
       var lookforname;
       var replacement;
       // if we are looking for a string, we want to delete it
@@ -177,7 +186,7 @@ console.log(lookingFor);
 
      let re = new RegExp(lookforname, 'g');
 
-console.log("re",re);
+//console.log("re",re);
 
      if(str.match(re)) {
 
@@ -189,7 +198,7 @@ console.log("re",re);
     return str
 }
 
-function noPlainTeX(str, lookingFor, type="") {
+function noPlainTeX(str, lookingFor, type="", action="", extra="") {
 
 //console.log(lookingFor);
    const thesetagsType = lookingFor[0];
@@ -221,9 +230,14 @@ function noPlainTeX(str, lookingFor, type="") {
       if(str.match(re)) {
 
 //          allErrors.push(["error", thesetagsType , lookforname]);
-          showAnomalyStatus(thesetagsType, thesetagsName, lookfor);
 
-          str = str.replace(re, '<span tabindex="0" data-macro="' + lookforname + '" ' +  'class="error' + ' ' + thesetagsType + ' ' + lookforname + '">$1</span>');
+          if(action == "delete") {
+            showDeleteStatus(thesetagsType, lookforname, str.match(re).length, extra);
+            str = str.replace(re, "");
+          } else {
+            showAnomalyStatus(thesetagsType, thesetagsName, lookfor);
+            str = str.replace(re, '<span tabindex="0" data-macro="' + lookforname + '" ' +  'class="error' + ' ' + thesetagsType + ' ' + lookforname + '">$1</span>');
+          }
       }
 
    }
@@ -278,10 +292,6 @@ function logKeyDown(e) {
     } else if (e.code == "Enter") {
        console.log("adding menu")
        addEditMenuTo(input_region);
-//       let edit_menu = document.createElement('span');
-//       edit_menu.setAttribute("id", "edit_menu_holder");
-//       edit_menu.innerHTML = "<span id='edit_choice'>change to</span>";
-//       input_region.appendChild(edit_menu)
     }
     if (e.code == "Tab" && themenu) {
        e.preventDefault();
@@ -334,7 +344,6 @@ function showAnomalyStatus(err0, err1, err2) {
 
    var thiserrWrapper = document.createElement('div');
    thiserrWrapper.className = "error";
-//   let thiserr = '<span class="' + err[0] + ' ' + 'root' +  err[2] + ' ' + err[1]  + '">' + err[2] + '</span>' + ' <span onclick="scrollToClass(' + "'" + err[2] + "',0" + ')">first</span>' + ' ' + '<span onclick="scrollToClass(' + "'" + err[2] + "',-1" + ')">last</span>' +  '\n' + "<br/>";
    let thiserr = '<span class="oldmarkup ' + err0 + ' ' + 'root' +  err2 + ' ' + err1  + '">' + err2 + '</span>';
 
    var thisdefault = "<em>delete</em>";
@@ -342,8 +351,14 @@ function showAnomalyStatus(err0, err1, err2) {
 
    thiserr += '<span class="default">' + thisdefault + '</span>';
 
-    thiserr += ' <span onclick="scrollToClass(' + "'" + err2 + "',0" + ')">first</span>' + ' ' + '<span onclick="scrollToClass(' + "'" + err2 + "',-1" + ')">last</span>' +  '\n' ;
+    thiserr += ' <span onclick="scrollToClass(' + "'" + err2 + "',0" + ')">first</span>' + ' ... ' + '<span onclick="scrollToClass(' + "'" + err2 + "',-1" + ')">last example</span>' +  '\n' ;
    thiserrWrapper.innerHTML = thiserr;
    anomalyStatus.appendChild(thiserrWrapper);
 }
 
+function showDeleteStatus(type, substitution, num, extra="") {
+   document.getElementById('deletedSection').className = `show status`;
+   let message = substitution;
+   message += " " + num + " times " + extra + "\n";
+   deletedStatus.textContent += message;
+}

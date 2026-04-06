@@ -1,11 +1,6 @@
 
 export let badPlainTeX = [
-   ["unused","conditionals", ["if","fi","then","else","loop","repeat"]],
-   ["presentation","font_size", ["tiny","scriptsize","footnotesize","small","normalsize",
-                  "large","Large","LARGE", "huge", "Huge"]],
    ["presentation","latex_fonts", ["textrm","textit","textbf", "textsc","texttt"]],
-   ["presentation","spacing_vertical", ["smallskip","medskip","bigskip", "vfil","vfill"]],
-   ["presentation","archaic_tex", ["centerline", "centering", "noindent", "par"]],
 ];
 
 export let badPlainTeXdirectives = [  // replace, or just delete
@@ -36,8 +31,16 @@ export let unnecessaryLaTeX = [
 // newenvironment
 // \vspace{1cm} medskip
 
-export let badEverywhereMacros = [
+export let specialBadMacros = [
    ["accessibility","consistency", ["renewcommand"]],
+];
+
+export let badEverywhereMacros = [
+   ["unused","conditionals", ["if","fi","iffalse","then","else","loop","repeat"]],
+   ["presentation","font_size", ["tiny","scriptsize","footnotesize","small","normalsize",
+                  "large","Large","LARGE", "huge", "Huge"]],
+   ["presentation","spacing_vertical", ["smallskip","medskip","bigskip", "vfil","vfill"]],
+   ["presentation","archaic_tex", ["centerline", "centering", "noindent", "par"]],
    ["mistake","nonstructural", ["ensuremath"]],
    ["archaic","low_level_tex", ["relax","makeatletter","makeatother",
         "csname","endcsname", "shipout", "noexpand","expandafter","clearpage"]],
@@ -55,6 +58,7 @@ export let badEverywhereMacrosLine = [  // take everything after this to end of 
 
 export let badEverywhereMacrosPlus = [  // have a required argument
    ["presentation","spacing_vertical", [["vspace",1]]],
+   ["presentation","spacing_vertical", [["hspace",1]]],
    ["accessibility","colors", [["color",1],["textcolor",1], ["mathcolor",1],["definecolor",3]]],
 ];
 

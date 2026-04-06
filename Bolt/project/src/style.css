@@ -217,7 +217,7 @@ input[type="file"] {
 }
 
 .file-list {
-  max-height: 400px;
+  max-height: 200px;
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
@@ -311,11 +311,14 @@ input[type="file"] {
 
 .oldmarkup {
    display: inline-block;
-   width: 10em;
+   width: 15em;
+}
+.oldmarkup.anchor {
+   margin-bottom: 10px;
 }
 .default {
    display: inline-block;
-   width: 8em;
+   width: 12em;
 }
 .warning {
     background: #ebf;
@@ -333,6 +336,9 @@ input[type="file"] {
 }
 .error.presentation {
     background: #ff8;
+}
+.error.warning {
+    background: #fcc;
 }
 
 .error,
@@ -358,6 +364,7 @@ input[type="file"] {
     display: block;
 }
 
+/*
 .struct {
   margin-left: 1ex;
 }
@@ -367,12 +374,19 @@ input[type="file"] {
 .struct .struct .struct {
   margin-left: 3ex;
 }
+*/
+.elem {
+  width: 600px;
+}
 .elem + .elem {
   margin-top: 10px;
 }
+#structureSection > .struct > .elem > .key {
+  width: 11ex;
+}
 .elem .key {
   display: inline-block;
-  width: 12ex;
+  width: 8ex;
   margin-right: 0.5em;
   vertical-align: top;
 }
@@ -382,8 +396,13 @@ input[type="file"] {
 
 .elem .value {
   display: inline-block;
-  width: 500px;
+  width: 400px;
 }
+.struct.list > .elem {
+  border: 1px dotted blue;
+  padding: 3px;
+}
+
 .struct.dict {
   padding: 6px;
 }
