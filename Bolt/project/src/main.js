@@ -478,33 +478,76 @@ function splitup(text) {
    let packages = text.match(/\\usepackage.*/g);
    text = text.replace(/\\usepackage.*/g, "");
 
+   let textTitle = "";
+   let beforeaftertitle = text.split(/\\title\b/);
+console.log("beforeaftertitle[0]", typeof beforeaftertitle[0],beforeaftertitle[0].substring(0,50));
+console.log("beforeaftertitle[1]", typeof beforeaftertitle[1],beforeaftertitle[1].substring(0,50));
+   if(beforeaftertitle.length != 2) { alert("Did not find a title") }
+   if(beforeaftertitle[1].startsWith("[")) {  //strip off the short title
+     beforeaftertitle[1] = firstBracketedString(beforeaftertitle[1], 0, "[", "]")[1].trim();
+   }
+   [textTitle, beforeaftertitle[1]] = firstBracketedString(beforeaftertitle[1]);
+   textTitle = textTitle.substring(1, textTitle.length - 1);
+
+   text = beforeaftertitle[0] + beforeaftertitle[1];
+
+   let macros = [];
+   let macrosplit = text.split(/\\newcommand\b/);
+
+   let beforemacros = macrosplit.shift();
+   let mac;
+   for(mac of macrosplit) {
+      mac = mac.trim();
+      let thisterm = "";
+      let thisdef = "";
+      let thisbrack = "";
+      if(mac.startsWith("\\")) {
+        thisterm = mac.replace(/^([^{]+)({.*)$/s,"$1");
+        thisterm = "{" + thisterm.trim() + "}";
+        mac = mac.replace(/^([^{]+)({.*)$/s,"$2");
+      } else {
+        [thisterm, mac] = firstBracketedString(mac);
+      }
+      mac = mac.trim();
+      while(mac.startsWith("[")) {
+        let morebrack = "";
+        [morebrack, mac] = firstBracketedString(mac, 0, "[", "]");
+        thisbrack += morebrack.trim();
+        mac = mac.trim()
+      }
+      [thisdef, mac] = firstBracketedString(mac);
+      beforemacros += mac;
+      macros.push("\\newcommand" + thisterm + thisbrack + thisdef);
+   }
+
+   text = beforemacros + mac;
+
    let preambleBodyBiblio = separatePieces(text);
 
    let preamble = preambleBodyBiblio[0];
    let maintext = preambleBodyBiblio[1];
    let bibliography = preambleBodyBiblio[2];
 
-   let textTitle = "";
-   if(maintext.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
-console.log("found a title");
-      maintext = maintext.replace(/(\\title)\[[^\[\]]*\]\s*/,"$1");
-      console.log("found a title");
-      textTitle = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
-      maintext = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
-   } else if (preamble.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
-      console.log("found a title in preamble");
-      preamble = preamble.replace(/(\\title)\[[^\[\]]*\]\s*/,"$1");
-      textTitle = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
-      preamble = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
-   }
+//   if(maintext.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
+//console.log("found a title");
+//      maintext = maintext.replace(/(\\title)\[[^\[\]]*\]\s*/,"$1");
+//      console.log("found a title");
+//      textTitle = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
+//      maintext = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
+//   } else if (preamble.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
+//      console.log("found a title in preamble");
+//      preamble = preamble.replace(/(\\title)\[[^\[\]]*\]\s*/,"$1");
+//      textTitle = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
+//      preamble = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
+//   }
    console.log("A textTitle", textTitle);
 
-   let macros = preamble.match(/\\(re)?newcommand.*/g);
-   console.log("macros", macros);
-   preamble = preamble.replace(/\\(re)?newcommand.*/g, "");
-   let bodymacros = maintext.match(/\\(re)?newcommand.*/g);
-   console.log("body macros", macros);
-   maintext = maintext.replace(/\\(re)?newcommand.*/g, "");
+   let remacros = preamble.match(/\\renewcommand.*/g);
+   console.log("remacros", remacros);
+   preamble = preamble.replace(/\\renewcommand.*/g, "");
+   let rebodymacros = maintext.match(/\\renewcommand.*/g);
+   console.log("body macros", rebodymacros);
+   maintext = maintext.replace(/\\renewcommand.*/g, "");
 
    let mathoperators = preamble.match(/\\DeclareMathOperator.*/g);
    preamble = preamble.replace(/\\DeclareMathOperator.*/g, "");
@@ -512,7 +555,8 @@ console.log("found a title");
    let text_structured = {
        "title": textTitle.trim(),
        "abstract": theabstract.trim(),  // what if empty?
-       "macros": macros.concat(bodymacros),
+//       "macros": macros.concat(bodymacros),
+       "macros": macros,
        "mathoperators": mathoperators,
        "packages": packages,
        "preamble": preamble.trim().replace(/\n{2,}/g, "\n"),
