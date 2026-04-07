@@ -1,6 +1,6 @@
 //import JSZip from 'jszip';
 
-import {trimjunk} from './utils.js';
+import {trimjunk, firstBracketedString} from './utils.js';
 import {separatePieces, scanForAnomalies} from './scan.js';
 import {badPlainTeX, badPlainTeXdirectives, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
 
@@ -256,8 +256,8 @@ console.log("replacing an input",match, "XX", theNewFile);
     if(fileWeWant) { console.log("expanding ", fileWeWant); 
        return filesDictionary[fileWeWant] }
     else {
-       return "XYZW"
        alert("missing file: " + theNewFile)
+       return "XYZW"
     }
     }
 //  }
@@ -487,13 +487,13 @@ function splitup(text) {
    let textTitle = "";
    if(maintext.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
 console.log("found a title");
-      maintext = maintext.replace(/(\\title)\[[^\[\]]*\]/,"$1");
+      maintext = maintext.replace(/(\\title)\[[^\[\]]*\]\s*/,"$1");
       console.log("found a title");
       textTitle = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
       maintext = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
    } else if (preamble.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
       console.log("found a title in preamble");
-      preamble = preamble.replace(/(\\title)\[[^\[\]]*\]/,"$1");
+      preamble = preamble.replace(/(\\title)\[[^\[\]]*\]\s*/,"$1");
       textTitle = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
       preamble = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
    }
@@ -560,30 +560,41 @@ function spliton(text, separators) {
   let re = new RegExp("\\\\" + this_separator + "\\b", 'g');
 //  let text_list = text.split("\\" + this_separator + "\b");
   let text_list = text.split(re);
+  let new_text_list = [];
 // console.log("length of text_list", text_list.length);
   if(text_list.length == 1) { return spliton(text_list[0], remaining_separators) }
   for (let [i, value] of text_list.entries()) {
        value = value.trim();
        const this_title = "";
        if(!value.startsWith("{")) {
-         if(i == 0) {
-           text_list[i] = {"type": "introduction",
+         if(i == 0 && value) {
+//           text_list[i] = {"type": "introduction",
+//                           "contents": spliton(value, remaining_separators)
+           new_text_list.push({"type": "introduction",
                            "contents": spliton(value, remaining_separators)
-           }
-         }
-         else {
+                              }
+                             )
+         } else if(i == 0) { // introduction is empty, so ignore
+        //   text_list.unshift()
+         } else {
            alert("no " + this_separator + " " + i + " no title: " + value.substring(0,50))
          }
        } else { 
-         const this_title = value.replace(/^{([^}]+)}(.*)$/s, "$1");
-         const this_div_contents = value.replace(/^{([^}]+)}(.*)$/s, "$2");
-         text_list[i] = {"type": this_separator,
+         let [this_title, this_div_contents] = firstBracketedString(value);
+         this_title = this_title.substring(1,this_title.length - 1);
+  //       const this_title = value.replace(/^{([^}]+)}(.*)$/s, "$1");
+  //       const this_div_contents = value.replace(/^{([^}]+)}(.*)$/s, "$2");
+//         text_list[i] = {"type": this_separator,
+//                         "title": this_title,
+//                         "contents": spliton(this_div_contents, remaining_separators)};
+         new_text_list.push({"type": this_separator,
                          "title": this_title,
-                         "contents": spliton(this_div_contents, remaining_separators)};
+                         "contents": spliton(this_div_contents, remaining_separators)
+                        }
+                        )
        }
-
    }
-   return text_list
+   return new_text_list
 }
 
 function showstructure(struct) {

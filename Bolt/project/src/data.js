@@ -39,7 +39,7 @@ export let badEverywhereMacros = [
    ["presentation","font_size", ["tiny","scriptsize","footnotesize","small","normalsize",
                   "large","Large","LARGE", "huge", "Huge", "normalfont"]],
    ["presentation","spacing_vertical", ["smallskip","medskip","bigskip", "vfil","vfill"]],
-   ["presentation","archaic_tex", ["centerline", "centering", "noindent", "par"]],
+   ["presentation","archaic_tex", ["centerline", "centering", "noindent", "par","linebreak"]],
    ["mistake","nonstructural", ["ensuremath"]],
    ["archaic","low_level_tex", ["relax","makeatletter","makeatother",
         "csname","endcsname", "shipout", "noexpand","expandafter","clearpage"]],
@@ -52,7 +52,7 @@ export let badEverywhereMacrosLine = [  // take everything after this to end of 
    ["archaic","low_level_tex", ["catcode", "newtheorem", "maketitle"]]
 ]
 export let publisherOptions = [  // take everything after this to end of line
-   ["publisher","zzzzz", ["theoremstyle", "numberwithin"]]
+   ["publisher","zzzzz", ["theoremstyle", "numberwithin","setcounter","tableofcontents"]]
 ]
 export let eliminateAndSave = [
    ["archaic","use_newcommand_only",["def","let","edef","gdef","xdef","global","long"]],
@@ -63,6 +63,7 @@ export let eliminateAndSave = [
 export let badEverywhereMacrosPlus = [  // have a required argument
    ["presentation","spacing_vertical", [["vspace",1]]],
    ["presentation","spacing_vertical", [["hspace",1]]],
+   ["other","other", [["date",1]]],
    ["accessibility","colors", [["color",1],["textcolor",1], ["mathcolor",1],["definecolor",3]]],
 ];
 
