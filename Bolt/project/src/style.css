@@ -265,6 +265,12 @@ input[type="file"] {
   word-break: break-all;
 }
 
+.saved-content {
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'Monaco', 'Courier New', monospace;
+  background: #f9f9f9;
+}
 .copy-button {
   background: #f0f0f0;
   color: #333;

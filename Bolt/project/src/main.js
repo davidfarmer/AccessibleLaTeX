@@ -360,7 +360,8 @@ function noBodyMacros(str) {  // assumes str is body, so should not have any mac
    
        allErrors.push(["warning","macros_in_body"]);
    
-       str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">$1</span>');
+    //   str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">$1</span>');
+       str = str.replace(/(\\(re)?newcommand.*)/g, '');
    }
   
    return str
@@ -408,7 +409,7 @@ function displayFileContent(fileName) {
   const content = filesDictionary[fileName];
 //  const isLarge = content.length > 390000;
 //  const displayContent = isLarge ? content.substring(0, 390000) + '\n... (truncated)' : content;
-  const displayContent = content;
+  const displayContent = content.replace(/(\n *){3,}/g, "\n\n");
 
 
 //    <div class="file-content">${escapeHtml(displayContent)}</div>
@@ -469,6 +470,14 @@ function escapeHtml(text) {
 
 function splitup(text) {
 
+   let theabstract = "";
+   if(text.match(/\\begin{abstract}/)) {
+     theabstract = text.replace(/^(.*)\\begin{abstract}(.*?)\\end{abstract}(.*)$/s,"$2");
+     text = text.replace(/^(.*)\\begin{abstract}(.*?)\\end{abstract}(.*)$/s,"$1$3");
+   }
+   let packages = text.match(/\\usepackage.*/g);
+   text = text.replace(/\\usepackage.*/g, "");
+
    let preambleBodyBiblio = separatePieces(text);
 
    let preamble = preambleBodyBiblio[0];
@@ -476,28 +485,41 @@ function splitup(text) {
    let bibliography = preambleBodyBiblio[2];
 
    let textTitle = "";
-   if(maintext.includes("\\title{")) {  // wrong: need to allow {} in title
+   if(maintext.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
+console.log("found a title");
+      maintext = maintext.replace(/(\\title)\[[^\[\]]*\]/,"$1");
       console.log("found a title");
       textTitle = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
       maintext = maintext.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
+   } else if (preamble.match(/\\title(\[|{)/)) {  // wrong: need to allow {} in title
+      console.log("found a title in preamble");
+      preamble = preamble.replace(/(\\title)\[[^\[\]]*\]/,"$1");
+      textTitle = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$3")
+      preamble = preamble.replace(/^(.*)(\\title *{([^{}]+)})(.*)/s,"$1$4")
    }
-   console.log("textTitle", textTitle);
+   console.log("A textTitle", textTitle);
 
    let macros = preamble.match(/\\(re)?newcommand.*/g);
    console.log("macros", macros);
    preamble = preamble.replace(/\\(re)?newcommand.*/g, "");
-   let packages = preamble.match(/\\usepackage.*/g);
-   preamble = preamble.replace(/\\usepackage.*/g, "");
+   let bodymacros = maintext.match(/\\(re)?newcommand.*/g);
+   console.log("body macros", macros);
+   maintext = maintext.replace(/\\(re)?newcommand.*/g, "");
+
+   let mathoperators = preamble.match(/\\DeclareMathOperator.*/g);
+   preamble = preamble.replace(/\\DeclareMathOperator.*/g, "");
 
    let text_structured = {
        "title": textTitle.trim(),
-       "macros": macros,
+       "abstract": theabstract.trim(),  // what if empty?
+       "macros": macros.concat(bodymacros),
+       "mathoperators": mathoperators,
        "packages": packages,
        "preamble": preamble.trim().replace(/\n{2,}/g, "\n"),
        "content": maintext.trim(),
        "bibliography": bibliography.trim(),
    }
-
+//   if(theabstract) { text_structured["abstract"] = theabstract.trim() }
 
 /*
    let maintext_list = text_structured["content"].split(/\\section/);
@@ -528,17 +550,17 @@ function splitup(text) {
 }
 
 function spliton(text, separators) {
-console.log("spliton of",separators);
-console.log("of",text.substring(0,50));
+// console.log("spliton of",separators);
+// console.log("of",text.substring(0,50));
   if(separators.length == 0) { return text.trim() }
   let this_separator = separators[0];
   let remaining_separators = [];
   for(let i=0; i<separators.length-1; ++i) { remaining_separators.push(separators[i+1]) }
-console.log("remaining_separators",remaining_separators);
+// console.log("remaining_separators",remaining_separators);
   let re = new RegExp("\\\\" + this_separator + "\\b", 'g');
 //  let text_list = text.split("\\" + this_separator + "\b");
   let text_list = text.split(re);
-console.log("length of text_list", text_list.length);
+// console.log("length of text_list", text_list.length);
   if(text_list.length == 1) { return spliton(text_list[0], remaining_separators) }
   for (let [i, value] of text_list.entries()) {
        value = value.trim();
@@ -566,7 +588,8 @@ console.log("length of text_list", text_list.length);
 
 function showstructure(struct) {
 
-   if(Array.isArray(struct)) {
+   if(!struct) { return "" }
+   else if(Array.isArray(struct)) {
      let this_entry = '<div class="struct list">\n';
      for (let [i, value] of struct.entries()) {
        this_entry += '<div class="elem">' + showstructure(value) + '</div>'

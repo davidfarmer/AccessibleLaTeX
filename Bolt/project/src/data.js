@@ -49,8 +49,13 @@ export let badEverywhereMacros = [
 ];
 
 export let badEverywhereMacrosLine = [  // take everything after this to end of line
+   ["archaic","low_level_tex", ["catcode", "newtheorem", "maketitle"]]
+]
+export let publisherOptions = [  // take everything after this to end of line
+   ["publisher","zzzzz", ["theoremstyle", "numberwithin"]]
+]
+export let eliminateAndSave = [
    ["archaic","use_newcommand_only",["def","let","edef","gdef","xdef","global","long"]],
-   ["archaic","low_level_tex", ["catcode"]]
 ]
 
 // not scanning for these:  "global","long"

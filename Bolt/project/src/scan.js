@@ -10,7 +10,7 @@ Output: list of warnings, errors, and fatalErrors
 const anomalyStatus = document.getElementById('anomalyStatus');
 
 // import {deleteComments, makeSafe} from './utils.js'
-import {badPlainTeX, badPlainTeXdirectives, specialBadMacros, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
+import {badPlainTeX, badPlainTeXdirectives, specialBadMacros, eliminateAndSave, badEverywhereMacros, publisherOptions, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
 
 // export function trimjunk(str) {
 // 
@@ -33,18 +33,20 @@ export function scanForAnomalies(str) {
 
    maintext = fixPlainTeX(maintext,badPlainTeXdirectives);
 
-   maintext = noBodyMacros(maintext);
-
 console.log("maintext 1", maintext.substring(1,40));
 
    for(const lookfor of badEverywhereMacros) {
 //console.log(lookfor);
-      preamble = noPlainTeX(preamble, lookfor,"", "delete");
-      maintext = noPlainTeX(maintext, lookfor,"", "delete");
+      preamble = noPlainTeX(preamble, lookfor,"", "delete", "");
+      maintext = noPlainTeX(maintext, lookfor,"", "delete", "");
    }
    for(const lookfor of specialBadMacros){
-      preamble = noPlainTeX(preamble, lookfor,"", "delete", "in the preamble");
-      maintext = noPlainTeX(maintext, lookfor,"", "delete", "in the main text")
+      preamble = noPlainTeX(preamble, lookfor,"line", "delete", "in the preamble", "save");
+      maintext = noPlainTeX(maintext, lookfor,"line", "delete", "in the main text", "save")
+}
+   for(const lookfor of eliminateAndSave){
+      preamble = noPlainTeX(preamble, lookfor,"line", "delete", "in the preamble", "save");
+      maintext = noPlainTeX(maintext, lookfor,"line", "delete", "in the main text", "save")
 }
 
 console.log("maintext 2", maintext.substring(1,40));
@@ -55,9 +57,12 @@ console.log("maintext 2", maintext.substring(1,40));
       maintext = noPlainTeX(maintext, lookfor,"hasarg","delete")
    }
    for(const lookfor of badEverywhereMacrosLine) {
-//console.log(lookfor);
-      preamble = noPlainTeX(preamble, lookfor,"line", "delete"," -- only use 'newcommand' for macros");
-      maintext = noPlainTeX(maintext, lookfor,"line", "delete"," -- only use 'newcommand', and only in the preamble")
+      preamble = noPlainTeX(preamble, lookfor,"line", "delete","");
+      maintext = noPlainTeX(maintext, lookfor,"line", "delete","")
+   }
+   for(const lookfor of publisherOptions) {
+      preamble = noPlainTeX(preamble, lookfor,"line", "delete"," -- this is a publisher choice in PreTeXt");
+      maintext = noPlainTeX(maintext, lookfor,"line", "delete"," -- this is a publisher choice in PreTeXt")
    }
 
 console.log("maintext 3", maintext.substring(1,40));
@@ -69,6 +74,8 @@ console.log("maintext 3", maintext.substring(1,40));
    for(const lookfor of badBodyEnvironments) {
       maintext = noBadEnvironments(maintext, lookfor, "env", "delete")
    }
+
+   maintext = noBodyMacros(maintext);
 
 //   console.log("maintext",maintext);
 
@@ -104,7 +111,7 @@ function noBodyMacros(str) {  // assumes str is body, so should not have any mac
 
 //       allErrors.push(["warning","macros_in_body"]);
 
-       str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">1</span>');
+       str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">$1</span>');
    }
 
    return str
@@ -176,7 +183,7 @@ function fixPlainTeX(str, lookingFor) {
     return str
 }
 
-function noPlainTeX(str, lookingFor, type="", action="", extra="") {
+function noPlainTeX(str, lookingFor, type="", action="", extra="",save="") {
 
 //console.log(lookingFor);
    const thesetagsType = lookingFor[0];
@@ -208,6 +215,10 @@ function noPlainTeX(str, lookingFor, type="", action="", extra="") {
       if(str.match(re)) {
 
 //          allErrors.push(["error", thesetagsType , lookforname]);
+          if(save) {
+console.log(type, "X", re);
+            showSaved(thesetagsType, lookforname, str.match(re), extra);
+          }
 
           if(action == "delete") {
             showDeleteStatus(thesetagsType, lookforname, str.match(re).length, extra);
@@ -340,3 +351,14 @@ function showDeleteStatus(type, substitution, num, extra="") {
    message += " " + num + " times " + extra + "\n";
    deletedStatus.textContent += message;
 }
+
+function showSaved(type, substitution, defn, extra="") {
+console.log("def match", defn);
+   document.getElementById('savedSection').className = `show status`;
+   let message = "";  //substitution;
+   for(const def of defn) {
+     message += def + "\n";
+   }
+   savedStatus.textContent += message;
+}
+
