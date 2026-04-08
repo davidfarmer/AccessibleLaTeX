@@ -12,8 +12,28 @@ export function makeXMLSafe(str) {
 
    str = str.replace(/> */g, "\\gt ");
    str = str.replace(/< */g, "\\lt ");
+   str = str.replace(/(\\(ref|eqref|cref|Cref|label){([^{}]+)})/g,  goodlabel);
 
    return str
+}
+
+//     text = text.replace(/(\\(input|include) *{([^{}]+)})/g, replaceInput);
+
+//  function replaceInput(match, offset, string) {
+//
+//    let theNewFile = match.replace(/.*{([^{}]+)}.*/,"$1");
+//console.log("replacing an input",match, "XX", theNewFile);
+//    const filesWeHave = Object.keys(texFiles);
+//    let fileWeWant = "";
+//    const fileStem = baseFile.replace(/\/.*$/, "");
+//    if(filesWeHave.includes(theNewFile)) { fileWeWant = theNewFile}
+//    else if(filesWeHave.includes(theNewFile + ".tex")) { 
+
+function goodlabel(match, offset, string) {
+   let thelabel = match.replace(/.*{([^{}]+)}.*/,"$1");
+   thelabel = thelabel.replace(/\s/g, "_");
+   thelabel = thelabel.replace(/[^a-zA-Z0-9_]/g, "-");
+   return  match.replace(/(.*{)([^{}]+)(}.*)/,"$1" + thelabel + "$3");
 }
 
 export function trimjunk(str) {

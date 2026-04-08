@@ -626,16 +626,27 @@ function spliton(text, separators) {
        } else { 
          let [this_title, this_div_contents] = firstBracketedString(value);
          this_title = this_title.substring(1,this_title.length - 1);
-  //       const this_title = value.replace(/^{([^}]+)}(.*)$/s, "$1");
-  //       const this_div_contents = value.replace(/^{([^}]+)}(.*)$/s, "$2");
-//         text_list[i] = {"type": this_separator,
+         this_div_contents = this_div_contents.trim();
+         let thislabel = "";
+         let thispiece = {};
+console.log("this_div_contents", "X", this_div_contents.substring(0,20));
+         if(this_div_contents.startsWith("\\label{")) {
+           thislabel = this_div_contents.replace(/^\\label{([^{}]+)}(.*)/s, "$1");
+console.log("found a lebel", thislabel);
+           this_div_contents = this_div_contents.replace(/^\\label{([^{}]+)}(.*)/s, "$2");
+         }
+         if(thislabel) { thispiece["label"] = thislabel }
+         thispiece["type"] = this_separator;
+         thispiece["title"] = this_title;
+         thispiece["contents"] = spliton(this_div_contents, remaining_separators);
+
+         new_text_list.push(thispiece);
+         
+//         new_text_list.push({"type": this_separator,
 //                         "title": this_title,
-//                         "contents": spliton(this_div_contents, remaining_separators)};
-         new_text_list.push({"type": this_separator,
-                         "title": this_title,
-                         "contents": spliton(this_div_contents, remaining_separators)
-                        }
-                        )
+//                         "contents": spliton(this_div_contents, remaining_separators)
+//                        }
+//                        )
        }
    }
    return new_text_list
