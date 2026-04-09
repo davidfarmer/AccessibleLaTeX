@@ -2,7 +2,7 @@
 
 import {trimjunk, firstBracketedString} from './utils.js';
 import {separatePieces, scanForAnomalies} from './scan.js';
-import {badPlainTeX, badPlainTeXdirectives, badEverywhereMacros, badEverywhereMacrosLine, badEverywhereMacrosPlus, badBodyEnvironments, alternatives} from './data.js'
+import {badPlainTeXdirectives} from './data.js'
 
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
@@ -229,6 +229,7 @@ console.log("baseFile", baseFile);
    filesDictionary[baseFile] = expandInputs(filesDictionary[baseFile]);
    let mainfile = filesDictionary[baseFile];
    mainfile = fixPlainTeX(mainfile, badPlainTeXdirectives);
+   mainfile = fixPlainTeX(mainfile, badPlainTeXdirectives);  // twice: {\sf\bf ...}
 //   mainfile = fixPlainTeX(mainfile,unnecessaryLaTeX);
    let tmppp = scanForAnomalies(mainfile);
    filesDictionary["TheMainFile.tex"] = tmppp;
@@ -335,39 +336,6 @@ function specialPreprocess(text) {
     return text
 }
 
-function noBadEnvironments(str, lookingFor) {
-
-   const thesetagsName = lookingFor[0];
-   const thesetagsType = lookingFor[1];
-   for(const lookfor of lookingFor[2]) {
-
-      const re = new RegExp("(\\\\(begin|end){\\s*" + lookfor + "})", 'g');
-
-      if(str.match(re)) {
-
-          allErrors.push(["error", thesetagsType, lookfor]);
-
-          str = str.replace(re, '<span tabindex="0" data-macro="' + lookfor + '" class="error ' + lookfor + '">$1</span>');
-      }
-   }
-
-   return str
-}
-
-function noBodyMacros(str) {  // assumes str is body, so should not have any macros
-
-   if(str.match(/\\(re)?newcommand/)) {
-   
-       allErrors.push(["warning","macros_in_body"]);
-   
-    //   str = str.replace(/(\\(re)?newcommand.*)/g, '<span class="warning macros_in_body">$1</span>');
-       str = str.replace(/(\\(re)?newcommand.*)/g, '');
-   }
-  
-   return str
-}     
-
-
 function displayFiles() {
 console.log("filesDictionary keys", Object.keys(filesDictionary));
   const files = Object.keys(filesDictionary).sort();
@@ -430,13 +398,22 @@ function displayFileContent(fileName) {
       btn.textContent = 'Copy to Clipboard';
     }, 2000);
   });
-//}
+
+let full_structure;
   document.getElementById('structureButton').addEventListener('click', () => {
 //    navigator.clipboard.writeText(content);
-   let full_structure = splitup(document.getElementById("selectedFileContent").textContent);
+   full_structure = splitup(document.getElementById("selectedFileContent").textContent);
    let visible_structure = showstructure(full_structure);
 // console.log("visible_structure", visible_structure);
    document.getElementById('structureSection').innerHTML = visible_structure;
+  });
+
+  document.getElementById('reassembleButton').addEventListener('click', () => {
+//    navigator.clipboard.writeText(content); 
+   let full_structure = splitup(document.getElementById("selectedFileContent").textContent);
+   let reassembled_document = reassemble(full_structure);
+// console.log("visible_structure", visible_structure);
+   document.getElementById('reassembleSection').innerHTML = reassembled_document
   });
 }
 
@@ -560,13 +537,13 @@ console.log("beforeaftertitle[1]", typeof beforeaftertitle[1],beforeaftertitle[1
        "mathoperators": mathoperators,
        "packages": packages,
        "preamble": preamble.trim().replace(/\n{2,}/g, "\n"),
-       "content": maintext.trim(),
+       "contents": maintext.trim(),
        "bibliography": bibliography.trim(),
    }
 //   if(theabstract) { text_structured["abstract"] = theabstract.trim() }
 
 /*
-   let maintext_list = text_structured["content"].split(/\\section/);
+   let maintext_list = text_structured["contents"].split(/\\section/);
    for (let [i, value] of maintext_list.entries()) {
        value = value.trim();
        if(!value.startsWith("{")) { 
@@ -581,14 +558,14 @@ console.log("beforeaftertitle[1]", typeof beforeaftertitle[1],beforeaftertitle[1
        }
    }
 */
-   let maintext_list = spliton(text_structured["content"],["part", "chapter", "section"]);
+   let maintext_list = spliton(text_structured["contents"],["part", "chapter", "section"]);
 
 
    
-   text_structured["content"] = maintext_list;
+   text_structured["contents"] = maintext_list;
 
 // console.log("text_structured", text_structured);
- console.log("text_structured[content]", text_structured["content"]);
+ console.log("text_structured[contents]", text_structured["contents"]);
 
    return text_structured
 }
@@ -681,3 +658,52 @@ function showstructure(struct) {
    } else { alert("unknown content:" +  typeof struct + ":" + struct) }
 }
 
+function reassemble(struct) {
+
+   let opening_tag = "\n";
+   let closing_tag = "\n";
+   let this_entry = "";
+
+   if(!struct) { return "" }
+
+   else if(Array.isArray(struct)) {
+     for (let [i, value] of struct.entries()) {
+       this_entry += reassemble(value) + '\n\n'
+     }
+     return this_entry
+
+   } else if(struct.constructor == Object) {
+
+     if("type" in struct) {
+       opening_tag += "<" + struct["type"];
+       closing_tag += "<" + struct["type"] + "/>";
+     } else {
+       opening_tag += "<" + "document";
+       closing_tag += "<" + "document" + "/>\n";
+     }
+     if("label" in struct) { opening_tag += ' xml:id="' + struct["label"] + '"'}
+     opening_tag += '>' + '\n';
+
+
+     this_entry = opening_tag;
+
+       for (const [key, value] of Object.entries(struct)) {
+          if(value && !["contents", "type", "label", "bibliography"].includes(key)) {
+            this_entry += '\n<' + key + '>';
+            if(key != "title") { this_entry += "\n" }
+            this_entry += reassemble(value).trim();
+            if(key != "title") { this_entry += "\n" }
+            this_entry += '</' + key + '>' + '\n';
+            if(key == "title") { this_entry += "\n" }
+          }
+       }
+       this_entry += reassemble(struct["contents"]);
+       if("bibliography" in struct) { this_entry += '<bibliography>\n' + reassemble(struct["bibliography"]) + '\n</bibliography>\n' }
+       return this_entry + closing_tag;
+
+   } else if(typeof struct  == "string") {
+     struct = struct.trim();
+     return struct
+   } else { alert("unknown content:" +  typeof struct + ":" + struct) }
+
+}

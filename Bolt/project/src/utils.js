@@ -39,8 +39,9 @@ function goodlabel(match, offset, string) {
 export function trimjunk(str) {
 
    str = str.replace(/\\begin +/g, "\\begin");
-   str = str.replace(/section +/g, "section");
-   str = str.replace(/section\*/g, "section");
+   str = str.replace(/\\chapter +/g, "\\chapter");
+   str = str.replace(/\\section +/g, "\\section");
+   str = str.replace(/\\section\*/g, "\\section");
    str = deleteComments(str);
    str = makeXMLSafe(str);
    str = str.replace(/\\end{document}.*/s, "");  // after deleting comments, in case an end was commented out

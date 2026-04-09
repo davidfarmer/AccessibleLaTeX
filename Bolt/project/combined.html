@@ -59,9 +59,13 @@
       <div id="selectedFileContent"></div>
     <button class="copy-button" id="copyButton">Copy to Clipboard</button>
     <button class="structure-button" id="structureButton">Show structure</button>
+    <button class="reconstruct-button" id="reassembleButton">Reassemble document</button>
     </div>
 
-  <div class="structure" id="structureSection"></div>
+
+  <div oninput='this.style.height = this.scrollHeight + "px"' style="width: 700px; " class="structure" id="structureSection"></div>
+
+  <textarea oninput='this.style.height = this.scrollHeight + "px"' style="width: 700px; " class="structure" id="reassembleSection"></textarea>
   </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>

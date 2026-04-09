@@ -8,7 +8,7 @@ export let badPlainTeXdirectives = [  // replace, or just delete
   ["rm","textrm"],
   ["em","emph"],
   ["it","textit"],
-  [ "itshape","textit"],
+  ["itshape","textit"],
   ["bf","textbf"],
   ["bfseries","textbf"],
   ["sf","textsf"],
@@ -49,10 +49,11 @@ export let badEverywhereMacros = [
 ];
 
 export let badEverywhereMacrosLine = [  // take everything after this to end of line
-   ["archaic","low_level_tex", ["catcode", "newtheorem", "maketitle"]]
+   ["archaic","low_level_tex", ["catcode", "newtheorem", "maketitle", "setlength"]]
 ]
 export let publisherOptions = [  // take everything after this to end of line
-   ["publisher","zzzzz", ["theoremstyle", "numberwithin","setcounter","tableofcontents"]]
+   ["publisher","zzzzz", ["theoremstyle","makeindex", "allowdisplaybreaks","frontmatter",
+               "mainmatter", "appendix","numberwithin","setcounter","tableofcontents","FloatBarrier"]]
 ]
 export let eliminateAndSave = [
    ["archaic","use_newcommand_only",["def","let","edef","gdef","xdef","global","long"]],
